@@ -29,9 +29,9 @@ public class ZeusHandItem extends Item {
     private static final int DARKNESS_TICKS = 100;
     private static final float HORROR_CHANCE = 0.12F;
     private static final float CHICKEN_CREEPER_CHANCE = 0.03F;
-    private static final float ZEUS_WATCHER_CHANCE = 0.06F;
-    private static final float DARKNESS_WITH_ZEUS_CHANCE = 0.04F;
-    private static final float ZEUS_IN_DARKNESS_CHANCE = 0.50F;
+    private static final float ZEUS_WATCHER_CHANCE = 0.15F;
+    private static final float DARKNESS_WITH_ZEUS_CHANCE = 0.08F;
+    private static final float ZEUS_IN_DARKNESS_CHANCE = 0.75F;
 
     public ZeusHandItem(Properties properties) {
         super(properties);
