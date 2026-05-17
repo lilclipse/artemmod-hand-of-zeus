@@ -10,6 +10,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.phys.Vec3;
 
@@ -22,6 +24,7 @@ import java.util.UUID;
 
 public class ZeusWatcherManager {
     private static final int MAX_LIFETIME_TICKS = 20 * 18;
+    private static final int WATCHER_DARKNESS_TICKS = 20 * 6;
     private static final double WATCH_DISTANCE = 38.0;
     private static final double LOOK_DOT_THRESHOLD = 0.975;
 
@@ -103,6 +106,7 @@ public class ZeusWatcherManager {
 
         level.addFreshEntity(zeus);
         WATCHERS.put(player.getUUID(), new WatcherData(zeus));
+        applyWatcherDarkness(level, player);
     }
 
     public static void scheduleMessage(ServerPlayer player, int delayTicks, Component message) {
@@ -220,6 +224,11 @@ public class ZeusWatcherManager {
         level.playSound(null, zeus.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.HOSTILE, 0.8F, 0.55F);
         player.displayClientMessage(Component.literal(randomVanishMessage(level)), false);
         zeus.discard();
+    }
+
+    private static void applyWatcherDarkness(ServerLevel level, ServerPlayer player) {
+        player.addEffect(new MobEffectInstance(MobEffects.DARKNESS, WATCHER_DARKNESS_TICKS, 0));
+        level.playSound(null, player.blockPosition(), SoundEvents.WITCH_AMBIENT, SoundSource.HOSTILE, 0.55F, 0.45F);
     }
 
     private static String randomVanishMessage(ServerLevel level) {
