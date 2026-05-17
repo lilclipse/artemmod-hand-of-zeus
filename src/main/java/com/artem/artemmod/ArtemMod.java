@@ -1,6 +1,7 @@
 package com.artem.artemmod;
 
 import com.artem.artemmod.entity.ModEntities;
+import com.artem.artemmod.event.ZeusKarmaEvents;
 import com.artem.artemmod.event.ZeusWatcherManager;
 import com.artem.artemmod.item.ModItems;
 import net.fabricmc.api.ModInitializer;
@@ -13,5 +14,6 @@ public class ArtemMod implements ModInitializer {
         ModItems.initialize();
         ModEntities.initialize();
         ZeusWatcherManager.initialize();
+        ZeusKarmaEvents.initialize();
     }
 }
