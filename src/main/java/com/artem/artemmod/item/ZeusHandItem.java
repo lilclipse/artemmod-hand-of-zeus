@@ -1,5 +1,6 @@
 package com.artem.artemmod.item;
 
+import com.artem.artemmod.event.ZeusWatcherManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -26,6 +27,7 @@ public class ZeusHandItem extends Item {
     private static final int DARKNESS_TICKS = 100;
     private static final float HORROR_CHANCE = 0.12F;
     private static final float CHICKEN_CREEPER_CHANCE = 0.03F;
+    private static final float ZEUS_WATCHER_CHANCE = 0.06F;
 
     public ZeusHandItem(Properties properties) {
         super(properties);
@@ -51,6 +53,7 @@ public class ZeusHandItem extends Item {
 
         summonLightning(serverLevel, player, targetPos);
         rollCursedEffect(serverLevel, player, targetPos);
+        rollZeusWatcher(serverLevel, player);
 
         player.getCooldowns().addCooldown(stack, COOLDOWN_TICKS);
         stack.hurtAndBreak(
@@ -86,6 +89,12 @@ public class ZeusHandItem extends Item {
         if (serverLevel.random.nextFloat() < HORROR_CHANCE) {
             player.addEffect(new MobEffectInstance(MobEffects.DARKNESS, DARKNESS_TICKS, 0));
             player.displayClientMessage(Component.literal("Он смотрит сверху."), false);
+        }
+    }
+
+    private void rollZeusWatcher(ServerLevel serverLevel, Player player) {
+        if (player instanceof ServerPlayer serverPlayer && serverLevel.random.nextFloat() < ZEUS_WATCHER_CHANCE) {
+            ZeusWatcherManager.trySpawnWatcher(serverLevel, serverPlayer);
         }
     }
 
