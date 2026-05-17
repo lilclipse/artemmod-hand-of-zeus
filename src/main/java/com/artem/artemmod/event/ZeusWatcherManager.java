@@ -13,8 +13,10 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -37,9 +39,12 @@ public class ZeusWatcherManager {
     };
 
     private static final Map<UUID, WatcherData> WATCHERS = new HashMap<>();
+    private static final Map<UUID, List<ScheduledMessage>> SCHEDULED_MESSAGES = new HashMap<>();
 
     public static void initialize() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
+            tickScheduledMessages(server.getPlayerList().getPlayers());
+
             Iterator<Map.Entry<UUID, WatcherData>> iterator = WATCHERS.entrySet().iterator();
 
             while (iterator.hasNext()) {
@@ -97,6 +102,49 @@ public class ZeusWatcherManager {
         WATCHERS.put(player.getUUID(), new WatcherData(zeus));
     }
 
+    public static void scheduleMessage(ServerPlayer player, int delayTicks, Component message) {
+        SCHEDULED_MESSAGES
+                .computeIfAbsent(player.getUUID(), uuid -> new ArrayList<>())
+                .add(new ScheduledMessage(delayTicks, message));
+    }
+
+    private static void tickScheduledMessages(List<ServerPlayer> players) {
+        if (SCHEDULED_MESSAGES.isEmpty()) {
+            return;
+        }
+
+        Map<UUID, ServerPlayer> onlinePlayers = new HashMap<>();
+        for (ServerPlayer player : players) {
+            onlinePlayers.put(player.getUUID(), player);
+        }
+
+        Iterator<Map.Entry<UUID, List<ScheduledMessage>>> mapIterator = SCHEDULED_MESSAGES.entrySet().iterator();
+        while (mapIterator.hasNext()) {
+            Map.Entry<UUID, List<ScheduledMessage>> entry = mapIterator.next();
+            ServerPlayer player = onlinePlayers.get(entry.getKey());
+
+            if (player == null) {
+                mapIterator.remove();
+                continue;
+            }
+
+            Iterator<ScheduledMessage> messageIterator = entry.getValue().iterator();
+            while (messageIterator.hasNext()) {
+                ScheduledMessage scheduledMessage = messageIterator.next();
+                scheduledMessage.delayTicks--;
+
+                if (scheduledMessage.delayTicks <= 0) {
+                    player.displayClientMessage(scheduledMessage.message, false);
+                    messageIterator.remove();
+                }
+            }
+
+            if (entry.getValue().isEmpty()) {
+                mapIterator.remove();
+            }
+        }
+    }
+
     private static boolean isPlayerLookingAt(ServerPlayer player, ZeusWatcherEntity zeus) {
         Vec3 eyePos = player.getEyePosition();
         Vec3 targetPos = zeus.position().add(0.0, zeus.getBbHeight() * 0.65, 0.0);
@@ -145,6 +193,16 @@ public class ZeusWatcherManager {
         private WatcherData(ZeusWatcherEntity zeus) {
             this.zeus = zeus;
             this.age = 0;
+        }
+    }
+
+    private static class ScheduledMessage {
+        private int delayTicks;
+        private final Component message;
+
+        private ScheduledMessage(int delayTicks, Component message) {
+            this.delayTicks = delayTicks;
+            this.message = message;
         }
     }
 }
