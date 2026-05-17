@@ -28,6 +28,13 @@ public class ModItems {
                     .stacksTo(16)
     );
 
+    public static final Item ZEUS_GUIDE_BOOK = register(
+            "zeus_guide_book",
+            ZeusGuideBookItem::new,
+            new Item.Properties()
+                    .stacksTo(1)
+    );
+
     public static <T extends Item> T register(String name, Function<Item.Properties, T> itemFactory, Item.Properties properties) {
         ResourceKey<Item> itemKey = ResourceKey.create(
                 Registries.ITEM,
@@ -45,5 +52,8 @@ public class ModItems {
 
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FOOD_AND_DRINKS)
                 .register(entries -> entries.accept(CURSED_ELIXIR));
+
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES)
+                .register(entries -> entries.accept(ZEUS_GUIDE_BOOK));
     }
 }
