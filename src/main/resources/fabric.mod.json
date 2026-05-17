@@ -15,6 +15,9 @@
   "entrypoints": {
     "main": [
       "com.artem.artemmod.ArtemMod"
+    ],
+    "client": [
+      "com.artem.artemmod.client.ArtemModClient"
     ]
   },
   "depends": {
