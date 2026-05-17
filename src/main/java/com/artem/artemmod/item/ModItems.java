@@ -21,6 +21,13 @@ public class ModItems {
                     .durability(128)
     );
 
+    public static final Item CURSED_ELIXIR = register(
+            "cursed_elixir",
+            CursedElixirItem::new,
+            new Item.Properties()
+                    .stacksTo(16)
+    );
+
     public static <T extends Item> T register(String name, Function<Item.Properties, T> itemFactory, Item.Properties properties) {
         ResourceKey<Item> itemKey = ResourceKey.create(
                 Registries.ITEM,
@@ -35,5 +42,8 @@ public class ModItems {
     public static void initialize() {
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.COMBAT)
                 .register(entries -> entries.accept(ZEUS_HAND));
+
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FOOD_AND_DRINKS)
+                .register(entries -> entries.accept(CURSED_ELIXIR));
     }
 }
