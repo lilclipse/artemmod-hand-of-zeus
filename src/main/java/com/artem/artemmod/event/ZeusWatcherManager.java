@@ -40,10 +40,13 @@ public class ZeusWatcherManager {
 
     private static final Map<UUID, WatcherData> WATCHERS = new HashMap<>();
     private static final Map<UUID, List<ScheduledMessage>> SCHEDULED_MESSAGES = new HashMap<>();
+    private static final Map<UUID, List<ScheduledWatcher>> SCHEDULED_WATCHERS = new HashMap<>();
 
     public static void initialize() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            tickScheduledMessages(server.getPlayerList().getPlayers());
+            List<ServerPlayer> players = server.getPlayerList().getPlayers();
+            tickScheduledMessages(players);
+            tickScheduledWatchers(players);
 
             Iterator<Map.Entry<UUID, WatcherData>> iterator = WATCHERS.entrySet().iterator();
 
@@ -108,16 +111,18 @@ public class ZeusWatcherManager {
                 .add(new ScheduledMessage(delayTicks, message));
     }
 
+    public static void scheduleWatcher(ServerPlayer player, int delayTicks) {
+        SCHEDULED_WATCHERS
+                .computeIfAbsent(player.getUUID(), uuid -> new ArrayList<>())
+                .add(new ScheduledWatcher(delayTicks));
+    }
+
     private static void tickScheduledMessages(List<ServerPlayer> players) {
         if (SCHEDULED_MESSAGES.isEmpty()) {
             return;
         }
 
-        Map<UUID, ServerPlayer> onlinePlayers = new HashMap<>();
-        for (ServerPlayer player : players) {
-            onlinePlayers.put(player.getUUID(), player);
-        }
-
+        Map<UUID, ServerPlayer> onlinePlayers = mapPlayers(players);
         Iterator<Map.Entry<UUID, List<ScheduledMessage>>> mapIterator = SCHEDULED_MESSAGES.entrySet().iterator();
         while (mapIterator.hasNext()) {
             Map.Entry<UUID, List<ScheduledMessage>> entry = mapIterator.next();
@@ -143,6 +148,47 @@ public class ZeusWatcherManager {
                 mapIterator.remove();
             }
         }
+    }
+
+    private static void tickScheduledWatchers(List<ServerPlayer> players) {
+        if (SCHEDULED_WATCHERS.isEmpty()) {
+            return;
+        }
+
+        Map<UUID, ServerPlayer> onlinePlayers = mapPlayers(players);
+        Iterator<Map.Entry<UUID, List<ScheduledWatcher>>> mapIterator = SCHEDULED_WATCHERS.entrySet().iterator();
+        while (mapIterator.hasNext()) {
+            Map.Entry<UUID, List<ScheduledWatcher>> entry = mapIterator.next();
+            ServerPlayer player = onlinePlayers.get(entry.getKey());
+
+            if (player == null) {
+                mapIterator.remove();
+                continue;
+            }
+
+            Iterator<ScheduledWatcher> watcherIterator = entry.getValue().iterator();
+            while (watcherIterator.hasNext()) {
+                ScheduledWatcher scheduledWatcher = watcherIterator.next();
+                scheduledWatcher.delayTicks--;
+
+                if (scheduledWatcher.delayTicks <= 0) {
+                    trySpawnWatcher((ServerLevel) player.level(), player);
+                    watcherIterator.remove();
+                }
+            }
+
+            if (entry.getValue().isEmpty()) {
+                mapIterator.remove();
+            }
+        }
+    }
+
+    private static Map<UUID, ServerPlayer> mapPlayers(List<ServerPlayer> players) {
+        Map<UUID, ServerPlayer> onlinePlayers = new HashMap<>();
+        for (ServerPlayer player : players) {
+            onlinePlayers.put(player.getUUID(), player);
+        }
+        return onlinePlayers;
     }
 
     private static boolean isPlayerLookingAt(ServerPlayer player, ZeusWatcherEntity zeus) {
@@ -203,6 +249,14 @@ public class ZeusWatcherManager {
         private ScheduledMessage(int delayTicks, Component message) {
             this.delayTicks = delayTicks;
             this.message = message;
+        }
+    }
+
+    private static class ScheduledWatcher {
+        private int delayTicks;
+
+        private ScheduledWatcher(int delayTicks) {
+            this.delayTicks = delayTicks;
         }
     }
 }
