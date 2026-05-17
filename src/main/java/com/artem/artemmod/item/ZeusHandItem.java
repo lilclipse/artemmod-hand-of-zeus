@@ -114,8 +114,8 @@ public class ZeusHandItem extends Item {
         Creeper creeper = EntityType.CREEPER.create(serverLevel, EntitySpawnReason.TRIGGERED);
         if (creeper != null) {
             creeper.setPos(targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5);
-            creeper.setPowered(true);
             serverLevel.addFreshEntity(creeper);
+            summonLightning(serverLevel, player, creeper.blockPosition());
         }
     }
 }
