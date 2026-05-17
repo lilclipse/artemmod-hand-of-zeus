@@ -26,6 +26,19 @@ public class ZeusWatcherManager {
     private static final double WATCH_DISTANCE = 38.0;
     private static final double LOOK_DOT_THRESHOLD = 0.975;
 
+    private static final String[] VANISH_MESSAGES = {
+            "Ты видел не того бога.",
+            "Он стоял там дольше, чем ты думаешь.",
+            "Не оборачивайся второй раз.",
+            "Небо запомнило твое лицо.",
+            "Ты заметил его. Он заметил это.",
+            "Гром не всегда приходит сверху.",
+            "Он ушел. Но тень осталась.",
+            "Следующий взгляд будет последним предупреждением.",
+            "Ты не должен был поднимать глаза.",
+            "Молния была приманкой."
+    };
+
     private static final Map<UUID, WatcherData> WATCHERS = new HashMap<>();
 
     public static void initialize() {
@@ -117,8 +130,12 @@ public class ZeusWatcherManager {
         level.sendParticles(ParticleTypes.CLOUD, pos.x, pos.y + 1.0, pos.z, 35, 0.45, 0.7, 0.45, 0.025);
         level.sendParticles(ParticleTypes.ELECTRIC_SPARK, pos.x, pos.y + 1.0, pos.z, 25, 0.35, 0.55, 0.35, 0.05);
         level.playSound(null, armorStand.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.HOSTILE, 0.8F, 0.55F);
-        player.displayClientMessage(Component.literal("Ты видел не того бога."), false);
+        player.displayClientMessage(Component.literal(randomVanishMessage(level)), false);
         armorStand.discard();
+    }
+
+    private static String randomVanishMessage(ServerLevel level) {
+        return VANISH_MESSAGES[level.random.nextInt(VANISH_MESSAGES.length)];
     }
 
     private static void removeWatcher(WatcherData data, boolean discard) {
