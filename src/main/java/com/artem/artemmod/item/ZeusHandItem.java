@@ -48,6 +48,11 @@ public class ZeusHandItem extends Item {
         super(properties);
     }
 
+    public static void resetDebt(ServerPlayer player) {
+        USE_DEBT.remove(player.getUUID());
+        player.displayClientMessage(Component.literal("Долг стерт. Но не прощен."), false);
+    }
+
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
