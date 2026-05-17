@@ -6,9 +6,10 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.resources.ResourceLocation;
 
-public class ZeusWatcherRenderer extends MobRenderer<ZeusWatcherEntity, HumanoidModel<ZeusWatcherEntity>> {
+public class ZeusWatcherRenderer extends MobRenderer<ZeusWatcherEntity, HumanoidRenderState, HumanoidModel<HumanoidRenderState>> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
             ArtemMod.MOD_ID,
             "textures/entity/zeus.png"
@@ -19,7 +20,12 @@ public class ZeusWatcherRenderer extends MobRenderer<ZeusWatcherEntity, Humanoid
     }
 
     @Override
-    public ResourceLocation getTextureLocation(ZeusWatcherEntity entity) {
+    public HumanoidRenderState createRenderState() {
+        return new HumanoidRenderState();
+    }
+
+    @Override
+    public ResourceLocation getTextureLocation(HumanoidRenderState state) {
         return TEXTURE;
     }
 }
