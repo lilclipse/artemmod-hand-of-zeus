@@ -3,7 +3,6 @@ package com.artem.artemmod.event;
 import com.artem.artemmod.item.ModItems;
 import com.artem.artemmod.item.ZeusHandItem;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -19,21 +18,11 @@ import net.minecraft.world.entity.animal.SnowGolem;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
 public class ZeusKarmaEvents {
-    private static final Set<UUID> STARTER_ITEMS_GIVEN = new HashSet<>();
+    private static final String STARTER_ITEMS_TAG = "artemmod_starter_items_given";
     private static int worldEventTicker = 0;
 
     public static void initialize() {
-        ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
-            if (entity instanceof ServerPlayer player && !STARTER_ITEMS_GIVEN.contains(player.getUUID())) {
-                giveStarterItems(player);
-            }
-        });
-
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (!(damageSource.getEntity() instanceof ServerPlayer player)) {
                 return;
@@ -46,6 +35,10 @@ public class ZeusKarmaEvents {
         });
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                giveStarterItemsIfNeeded(player);
+            }
+
             worldEventTicker++;
             if (worldEventTicker < 20 * 25) {
                 return;
@@ -84,11 +77,15 @@ public class ZeusKarmaEvents {
         }
     }
 
-    private static void giveStarterItems(ServerPlayer player) {
-        STARTER_ITEMS_GIVEN.add(player.getUUID());
+    private static void giveStarterItemsIfNeeded(ServerPlayer player) {
+        if (player.getTags().contains(STARTER_ITEMS_TAG)) {
+            return;
+        }
 
+        player.addTag(STARTER_ITEMS_TAG);
         giveOrDrop(player, new ItemStack(ModItems.ZEUS_HAND));
         giveOrDrop(player, new ItemStack(ModItems.ZEUS_GUIDE_BOOK));
+        player.displayClientMessage(Component.literal("§6Гром выбрал тебя."), false);
     }
 
     private static void giveOrDrop(ServerPlayer player, ItemStack stack) {
