@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " G ",
+    "GBG",
+    " D "
+  ],
+  "key": {
+    "G": "minecraft:gold_ingot",
+    "B": "minecraft:blaze_rod",
+    "D": "minecraft:diamond"
+  },
+  "result": {
+    "id": "artemmod:zeus_hand",
+    "count": 1
+  }
+}

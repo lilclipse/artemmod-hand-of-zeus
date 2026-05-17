@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "artemmod",
+  "version": "1.0.0",
+  "name": "ArtemMod: Hand of Zeus",
+  "description": "Adds the Hand of Zeus, a divine gauntlet that strikes lightning on right click.",
+  "authors": [
+    "Artem Oskin",
+    "ChatGPT"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/artemmod/textures/item/zeus_hand.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.artem.artemmod.ArtemMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.17.3",
+    "minecraft": "~1.21.10",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
