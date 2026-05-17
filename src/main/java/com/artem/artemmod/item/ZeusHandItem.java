@@ -42,15 +42,33 @@ public class ZeusHandItem extends Item {
     private static final float WHISPER_CHANCE = 0.07F;
     private static final float DELAYED_WATCHER_CHANCE = 0.05F;
 
-    private static final Map<UUID, Integer> USE_DEBT = new HashMap<>();
+    private static final Map<UUID, Integer> KARMA = new HashMap<>();
 
     public ZeusHandItem(Properties properties) {
         super(properties);
     }
 
     public static void resetDebt(ServerPlayer player) {
-        USE_DEBT.remove(player.getUUID());
+        KARMA.remove(player.getUUID());
         player.displayClientMessage(Component.literal("Долг стерт. Но не прощен."), false);
+    }
+
+    public static int getKarma(ServerPlayer player) {
+        return KARMA.getOrDefault(player.getUUID(), 0);
+    }
+
+    public static void addKarma(ServerPlayer player, int amount) {
+        int oldKarma = getKarma(player);
+        int newKarma = Math.max(0, oldKarma + amount);
+        KARMA.put(player.getUUID(), newKarma);
+
+        if (oldKarma < 10 && newKarma >= 10) {
+            player.displayClientMessage(Component.literal("Долг замечен."), false);
+        } else if (oldKarma < 20 && newKarma >= 20) {
+            player.displayClientMessage(Component.literal("Долг почти уплачен."), false);
+        } else if (oldKarma < 30 && newKarma >= 30) {
+            player.displayClientMessage(Component.literal("Он идет."), false);
+        }
     }
 
     @Override
@@ -170,19 +188,8 @@ public class ZeusHandItem extends Item {
     }
 
     private void updateDebtCounter(Player player) {
-        if (!(player instanceof ServerPlayer serverPlayer)) {
-            return;
-        }
-
-        int uses = USE_DEBT.getOrDefault(serverPlayer.getUUID(), 0) + 1;
-        USE_DEBT.put(serverPlayer.getUUID(), uses);
-
-        if (uses == 10) {
-            serverPlayer.displayClientMessage(Component.literal("Долг замечен."), false);
-        } else if (uses == 20) {
-            serverPlayer.displayClientMessage(Component.literal("Долг почти уплачен."), false);
-        } else if (uses == 30) {
-            serverPlayer.displayClientMessage(Component.literal("Он идет."), false);
+        if (player instanceof ServerPlayer serverPlayer) {
+            addKarma(serverPlayer, 1);
         }
     }
 
