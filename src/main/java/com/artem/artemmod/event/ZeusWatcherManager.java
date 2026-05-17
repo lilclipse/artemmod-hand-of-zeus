@@ -1,5 +1,7 @@
 package com.artem.artemmod.event;
 
+import com.artem.artemmod.entity.ModEntities;
+import com.artem.artemmod.entity.ZeusWatcherEntity;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -9,11 +11,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.decoration.ArmorStand;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.HashMap;
@@ -50,7 +47,7 @@ public class ZeusWatcherManager {
                 ServerPlayer player = server.getPlayerList().getPlayer(entry.getKey());
                 WatcherData data = entry.getValue();
 
-                if (player == null || data.armorStand.isRemoved()) {
+                if (player == null || data.zeus.isRemoved()) {
                     removeWatcher(data, false);
                     iterator.remove();
                     continue;
@@ -63,11 +60,11 @@ public class ZeusWatcherManager {
                     continue;
                 }
 
-                lookAtPlayer(data.armorStand, player);
+                lookAtPlayer(data.zeus, player);
 
-                if (isPlayerLookingAt(player, data.armorStand)) {
+                if (isPlayerLookingAt(player, data.zeus)) {
                     ServerLevel level = (ServerLevel) player.level();
-                    vanish(level, player, data.armorStand);
+                    vanish(level, player, data.zeus);
                     iterator.remove();
                 }
             }
@@ -85,27 +82,24 @@ public class ZeusWatcherManager {
                 .add((level.random.nextDouble() - 0.5) * 4.0, 0.0, (level.random.nextDouble() - 0.5) * 4.0);
 
         BlockPos spawnPos = BlockPos.containing(spawnCenter);
-        ArmorStand armorStand = EntityType.ARMOR_STAND.create(level, EntitySpawnReason.TRIGGERED);
-        if (armorStand == null) {
+        ZeusWatcherEntity zeus = ModEntities.ZEUS_WATCHER.create(level, EntitySpawnReason.TRIGGERED);
+        if (zeus == null) {
             return;
         }
 
-        armorStand.setPos(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
-        armorStand.setCustomName(Component.literal("Зевс"));
-        armorStand.setCustomNameVisible(false);
-        armorStand.setNoGravity(true);
-        armorStand.setInvulnerable(true);
-        armorStand.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.GOLDEN_HELMET));
-        armorStand.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.GOLDEN_CHESTPLATE));
-        armorStand.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.LIGHTNING_ROD));
+        zeus.setPos(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
+        zeus.setCustomName(Component.literal("Зевс"));
+        zeus.setCustomNameVisible(false);
+        zeus.setNoGravity(true);
+        zeus.setInvulnerable(true);
 
-        level.addFreshEntity(armorStand);
-        WATCHERS.put(player.getUUID(), new WatcherData(armorStand));
+        level.addFreshEntity(zeus);
+        WATCHERS.put(player.getUUID(), new WatcherData(zeus));
     }
 
-    private static boolean isPlayerLookingAt(ServerPlayer player, ArmorStand armorStand) {
+    private static boolean isPlayerLookingAt(ServerPlayer player, ZeusWatcherEntity zeus) {
         Vec3 eyePos = player.getEyePosition();
-        Vec3 targetPos = armorStand.position().add(0.0, armorStand.getBbHeight() * 0.65, 0.0);
+        Vec3 targetPos = zeus.position().add(0.0, zeus.getBbHeight() * 0.65, 0.0);
         Vec3 toWatcher = targetPos.subtract(eyePos);
         double distance = toWatcher.length();
 
@@ -118,20 +112,20 @@ public class ZeusWatcherManager {
         return look.dot(direction) > LOOK_DOT_THRESHOLD;
     }
 
-    private static void lookAtPlayer(ArmorStand armorStand, ServerPlayer player) {
-        Vec3 direction = player.position().subtract(armorStand.position());
+    private static void lookAtPlayer(ZeusWatcherEntity zeus, ServerPlayer player) {
+        Vec3 direction = player.position().subtract(zeus.position());
         double yaw = Math.toDegrees(Math.atan2(direction.z, direction.x)) - 90.0;
-        armorStand.setYRot((float) yaw);
-        armorStand.setYHeadRot((float) yaw);
+        zeus.setYRot((float) yaw);
+        zeus.setYHeadRot((float) yaw);
     }
 
-    private static void vanish(ServerLevel level, ServerPlayer player, ArmorStand armorStand) {
-        Vec3 pos = armorStand.position();
+    private static void vanish(ServerLevel level, ServerPlayer player, ZeusWatcherEntity zeus) {
+        Vec3 pos = zeus.position();
         level.sendParticles(ParticleTypes.CLOUD, pos.x, pos.y + 1.0, pos.z, 35, 0.45, 0.7, 0.45, 0.025);
         level.sendParticles(ParticleTypes.ELECTRIC_SPARK, pos.x, pos.y + 1.0, pos.z, 25, 0.35, 0.55, 0.35, 0.05);
-        level.playSound(null, armorStand.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.HOSTILE, 0.8F, 0.55F);
+        level.playSound(null, zeus.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.HOSTILE, 0.8F, 0.55F);
         player.displayClientMessage(Component.literal(randomVanishMessage(level)), false);
-        armorStand.discard();
+        zeus.discard();
     }
 
     private static String randomVanishMessage(ServerLevel level) {
@@ -139,17 +133,17 @@ public class ZeusWatcherManager {
     }
 
     private static void removeWatcher(WatcherData data, boolean discard) {
-        if (discard && !data.armorStand.isRemoved()) {
-            data.armorStand.discard();
+        if (discard && !data.zeus.isRemoved()) {
+            data.zeus.discard();
         }
     }
 
     private static class WatcherData {
-        private final ArmorStand armorStand;
+        private final ZeusWatcherEntity zeus;
         private int age;
 
-        private WatcherData(ArmorStand armorStand) {
-            this.armorStand = armorStand;
+        private WatcherData(ZeusWatcherEntity zeus) {
+            this.zeus = zeus;
             this.age = 0;
         }
     }
