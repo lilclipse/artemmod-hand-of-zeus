@@ -5,6 +5,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -28,6 +30,8 @@ public class ZeusHandItem extends Item {
     private static final float HORROR_CHANCE = 0.12F;
     private static final float CHICKEN_CREEPER_CHANCE = 0.03F;
     private static final float ZEUS_WATCHER_CHANCE = 0.06F;
+    private static final float DARKNESS_WITH_ZEUS_CHANCE = 0.04F;
+    private static final float ZEUS_IN_DARKNESS_CHANCE = 0.50F;
 
     public ZeusHandItem(Properties properties) {
         super(properties);
@@ -54,6 +58,7 @@ public class ZeusHandItem extends Item {
         summonLightning(serverLevel, player, targetPos);
         rollCursedEffect(serverLevel, player, targetPos);
         rollZeusWatcher(serverLevel, player);
+        rollDarknessWithZeusScenario(serverLevel, player);
 
         player.getCooldowns().addCooldown(stack, COOLDOWN_TICKS);
         stack.hurtAndBreak(
@@ -87,8 +92,7 @@ public class ZeusHandItem extends Item {
         }
 
         if (serverLevel.random.nextFloat() < HORROR_CHANCE) {
-            player.addEffect(new MobEffectInstance(MobEffects.DARKNESS, DARKNESS_TICKS, 0));
-            player.displayClientMessage(Component.literal("Он смотрит сверху."), false);
+            applyDarknessMessageAndLaugh(serverLevel, player);
         }
     }
 
@@ -96,6 +100,24 @@ public class ZeusHandItem extends Item {
         if (player instanceof ServerPlayer serverPlayer && serverLevel.random.nextFloat() < ZEUS_WATCHER_CHANCE) {
             ZeusWatcherManager.trySpawnWatcher(serverLevel, serverPlayer);
         }
+    }
+
+    private void rollDarknessWithZeusScenario(ServerLevel serverLevel, Player player) {
+        if (serverLevel.random.nextFloat() >= DARKNESS_WITH_ZEUS_CHANCE) {
+            return;
+        }
+
+        applyDarknessMessageAndLaugh(serverLevel, player);
+
+        if (player instanceof ServerPlayer serverPlayer && serverLevel.random.nextFloat() < ZEUS_IN_DARKNESS_CHANCE) {
+            ZeusWatcherManager.trySpawnWatcher(serverLevel, serverPlayer);
+        }
+    }
+
+    private void applyDarknessMessageAndLaugh(ServerLevel serverLevel, Player player) {
+        player.addEffect(new MobEffectInstance(MobEffects.DARKNESS, DARKNESS_TICKS, 0));
+        player.displayClientMessage(Component.literal("Он смотрит сверху."), false);
+        serverLevel.playSound(null, player.blockPosition(), SoundEvents.WITCH_AMBIENT, SoundSource.HOSTILE, 0.9F, 0.6F);
     }
 
     private void summonZeusChickenAndChargedCreeper(ServerLevel serverLevel, Player player, BlockPos targetPos) {
